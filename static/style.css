@@ -1,0 +1,16 @@
+body {
+    background-color: #1C1018;
+}
+.logo-main {
+    width: 108px;
+    height: 108px;
+    position: absolute;
+    top: -5px;
+    left: -5px;
+}
+.logo-centre {
+    width: 216px;
+    height: 216px;
+    margin: auto;
+    display: block;
+}
