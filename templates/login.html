@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dreek</title>
+    <link rel="stylesheet" href="static/style.css" >
+</head>
+<body>
+    <img class="logo-centre" src="static/images/Dreek_Logo_Transparent.png"></img>
+    <h1>Login To Dionvi</h1>
+    <div class="input-box">
+        <input id="0" placeholder="Enter Username/Email">
+    </div>
+    <div class="input-box"  style="margin-top: 20px;">
+        <input class="pass" id="1" type="Password" placeholder="Enter Password">
+    </div>
+    <p>Don't have an account? <a href="signup">Signup</a></p>
+    <script>
+        var id = 0;
+        console.log(id);
+        document.addEventListener('keydown', function(event) {
+            console.log(event);
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                console.log("Complete");
+                set_focus();
+            }
+        });
+    
+        function set_focus() {
+            id += 1;
+            if (id > 1) {
+                document.location.href = "signup";
+            }
+            document.getElementById(id.toString()).focus();
+        }
+    </script>    
+</body>
+</html>

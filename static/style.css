@@ -1,12 +1,13 @@
 body {
     background-color: #1C1018;
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
 }
 
 @font-face {
     font-style: normal;
     font-weight: normal;
-    font-family: 'NATS Regular';
-    src: local('NATS Regular'), url('NATS-Regular.woff') format('woff');
+    font-family: 'NATS';
+    src: local('NATS'), url('NATS-Regular.ttf') format('truetype');
     }
 
 .logo-main {
@@ -26,19 +27,19 @@ h1 {
     margin-top: -20px;
     text-align: center;
     color: whitesmoke;
-    font-family:'NATS Regular';
+    font-family: "NATS", sans-serif;
     font-weight: normal;
     font-size:42px
 }
 input {
     font-size:24px;
-    font-family:'NATS Regular';
     width:93%;
     height: 50%;
     margin-top: 20px;
     padding-top: 12px;
     outline: none;
     border: none;
+    font-family: "NATS", sans-serif;
     box-shadow: none;
     background-color: transparent;
     margin: auto;
@@ -46,7 +47,20 @@ input {
     color: whitesmoke;
     line-height: 1px;
 }
+p{
+    font-family: "NATS", sans-serif;
+    padding-top: 50px;
+    color: whitesmoke; 
+    text-align: center;
+}
+a{
+    font-family: "NATS", sans-serif;
+    padding-top: 50px;
+    color: #CCF5AC;
+    text-align: center;
+}
 .input-box{
+    font-family: "NATS", sans-serif;
     border-radius: 10%/90%;
     background-color: #545353;
     width: 350px;
@@ -55,3 +69,9 @@ input {
     display: block;
     line-height: 1px;
 }
+.pass{
+    font-family: sans-serif;
+}
+.pass::placeholder {
+    font-family: "NATS", sans-serif;
+  }
