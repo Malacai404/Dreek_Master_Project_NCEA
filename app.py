@@ -10,6 +10,9 @@ from datetime import datetime, timedelta
 import os
 
 app = Flask(__name__)
+@app.route('/')
+def mainpage():
+    return render_template('mainpage.html')
 @app.route('/signup')
 def signup():
     return render_template('signup.html')
