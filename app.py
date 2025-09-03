@@ -45,7 +45,7 @@ def mainpage():
     return render_template('mainpage.html')
 
 @app.route('/signup/init', methods=['POST'])
-def register_init():
+def signup_init():
     email = request.form.get('email')
     if not validate_email(email):
         flash('Invalid email', 'error')
@@ -63,7 +63,7 @@ def register_init():
             return redirect(url_for('login'))  
             
         session['registration_email'] = email
-        return redirect(url_for('register'))
+        return redirect(url_for('signup'))
         
     except Exception as e:
         flash('Error checking account status', 'error')
@@ -148,7 +148,7 @@ def verify_email():
 
 
 @app.route('/signup', methods=['GET', 'POST'])
-def register():
+def signup():
     email = session.pop('registration_email', None) or request.args.get('email')
     
     if request.method == 'POST':
@@ -159,19 +159,19 @@ def register():
 
         if not all([username, email, password, confirm_password]):
             flash('All fields are required', 'error')
-            return redirect(url_for('register', email=email))
+            return redirect(url_for('signup', email=email))
             
         if password != confirm_password:
             flash('Passwords do not match', 'error')
-            return redirect(url_for('register', email=email))
+            return redirect(url_for('signup', email=email))
             
         if len(password) < 8:
             flash('Password must be at least 8 characters', 'error')
-            return redirect(url_for('register', email=email))
+            return redirect(url_for('signup', email=email))
             
         if not re.match(r'^[a-zA-Z0-9_]{3,20}$', username):
             flash('Username must be 3-20 characters (letters, numbers, underscores)', 'error')
-            return redirect(url_for('register', email=email))
+            return redirect(url_for('signup', email=email))
             
         db = get_db()
         try:
@@ -193,14 +193,14 @@ def register():
             
         except sqlite3.IntegrityError as e:
             flash('Username or email already exists', 'error')
-            return redirect(url_for('register', email=email))
+            return redirect(url_for('signup', email=email))
         except Exception as e:
             flash(f'Registration error: {str(e)}', 'error')
-            return redirect(url_for('register', email=email))
+            return redirect(url_for('signup', email=email))
         finally:
             db.close()
     
-    return render_template('register.html', prefilled_email=email)
+    return render_template('signup.html', prefilled_email=email)
 
 
 
