@@ -15,25 +15,8 @@
     <div class="input-box"  style="margin-top: 20px;">
         <input class="pass" id="1" type="Password" placeholder="Enter Password">
     </div>
-    <p>Don't have an account? <a href="signup">Signup</a></p>
+    <p>Don't have an account? <a href="{{ url_for('signup') }}">Signup</a></p>
     <script>
-        var id = 0;
-        console.log(id);
-        document.addEventListener('keydown', function(event) {
-            console.log(event);
-            if (event.key === 'Enter' || event.keyCode === 13) {
-                console.log("Complete");
-                set_focus();
-            }
-        });
-    
-        function set_focus() {
-            id += 1;
-            if (id > 1) {
-                document.location.href = "/";
-            }
-            document.getElementById(id.toString()).focus();
-        }
     </script>    
 </body>
 </html>

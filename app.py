@@ -53,7 +53,7 @@ def register_init():
     email = request.form.get('email')
     if not validate_email(email):
         flash('Invalid email', 'error')
-        return redirect(url_for('index'))
+        return redirect(url_for('mainpage'))
     
     db = get_db()
     try:
@@ -71,7 +71,7 @@ def register_init():
         
     except Exception as e:
         flash('Error checking account status', 'error')
-        return redirect(url_for('index'))
+        return redirect(url_for('mainpage'))
     finally:
         db.close()
 
