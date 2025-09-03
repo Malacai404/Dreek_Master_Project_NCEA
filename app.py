@@ -8,6 +8,9 @@ from email.mime.multipart import MIMEMultipart
 import secrets
 from datetime import datetime, timedelta
 import os
+from werkzeug.utils import secure_filename
+
+
 
 app = Flask(__name__)
 
@@ -19,6 +22,85 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dreek_default_secret_key')
 app.config['EMAIL_ADDRESS'] = os.getenv('EMAIL_ADDRESS', 'malacai404@gmail.com')
 app.config['EMAIL_PASSWORD'] = os.getenv('EMAIL_PASSWORD', 'rlelnhlpffkbvkin')
 
+
+
+UPLOAD_FOLDER = 'static/uploads/videos'
+ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_video():
+    if 'user_id' not in session:
+        print("no user in session, redirecting to login")
+        return redirect(url_for('login'))
+
+    db = get_db()
+    try:
+        categories = db.execute('SELECT category_id, category_name FROM category').fetchall()
+    except Exception as e:
+        print(f"error fetching categories: {str(e)}")
+        flash('An error occurred while loading categories.', 'error')
+        return redirect(url_for('mainpage'))
+    finally:
+        db.close()
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        category_id = request.form.get('category_id')
+        file = request.files.get('file')
+
+        if not title or not description or not category_id or not file:
+            flash('All fields are required', 'error')
+            return redirect(url_for('upload_video'))
+
+        if not allowed_file(file.filename):
+            flash('Invalid file type. Only MP4, AVI, MOV, and MKV are allowed.', 'error')
+            return redirect(url_for('upload_video'))
+
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        try:
+            db = get_db()
+
+            db.execute('INSERT INTO comments_list DEFAULT VALUES')
+            comments_list_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
+
+            db.execute('''
+                INSERT INTO video (view_count, video_file_link, description, video_length, comments_list_id, category_id, channel_id, video_thumbnail_file_link)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (0, filepath, description, '00:00', comments_list_id, category_id, session['user_id'], ''))
+
+            db.execute('''
+                UPDATE category
+                SET video_count = video_count + 1
+                WHERE category_id = ?
+            ''', (category_id,))
+
+            db.execute('''
+                UPDATE channel
+                SET video_count = video_count + 1
+                WHERE channel_id = (
+                    SELECT channel_id FROM user_info WHERE user_info_id = ?
+                )
+            ''', (session['user_id'],))
+
+            db.commit()
+            flash('Video uploaded successfully!', 'success')
+            return redirect(url_for('mainpage'))
+        except Exception as e:
+            print(f"error uploading video: {str(e)}")
+            flash('An error occurred while uploading the video.', 'error')
+            return redirect(url_for('upload_video'))
+        finally:
+            db.close()
+
+    return render_template('upload_video.html', categories=categories)
 
 def validate_email(email):
     """Validate the format of an email address."""
@@ -41,7 +123,59 @@ def init_db():
 
 @app.route('/')
 def mainpage():
-    return render_template('mainpage.html')
+    if 'user_id' not in session:
+        print("no user in session, redirecting to signup")
+        return redirect(url_for('signup'))
+
+    print(f"user in session: user_id={session['user_id']}, username={session['username']}")
+
+    db = get_db()
+    try:
+        videos = db.execute('''
+            SELECT v.video_id, v.view_count, v.video_file_link, v.description AS video_description, 
+                   v.video_thumbnail_file_link, c.channel_name AS channel_name, c.channel_image_link
+            FROM video v
+            JOIN channel c ON v.channel_id = c.channel_id
+        ''').fetchall()
+
+        channels = db.execute('''
+            SELECT channel_id, channel_name, follow_count, channel_image_link, description 
+            FROM channel
+        ''').fetchall()
+
+        return render_template('mainpage.html', username=session['username'], videos=videos, channels=channels)
+    except Exception as e:
+        print(f"error loading main page: {str(e)}")
+        flash(f'Error loading main page: {str(e)}', 'error')
+        return redirect(url_for('signup'))
+    finally:
+        db.close()
+
+@app.route('/videodisplay')
+def videodisplay():
+    if 'user_id' not in session:
+        print("no user in session, redirecting to signup")
+        return redirect(url_for('signup'))
+
+    print(f"user in session: user_id={session['user_id']}, username={session['username']}")
+
+    db = get_db()
+    try:
+        # Fetch detailed video information
+        videos = db.execute('''
+            SELECT v.video_id, v.view_count, v.video_file_link, v.description AS video_description, 
+                   v.video_length, c.channel_name AS channel_name, c.channel_image_link
+            FROM video v
+            JOIN channel c ON v.channel_id = c.channel_id
+        ''').fetchall()
+
+        return render_template('videodisplay.html', username=session['username'], videos=videos)
+    except Exception as e:
+        print(f"error loading videodisplay page: {str(e)}")
+        flash(f'Error loading videodisplay page: {str(e)}', 'error')
+        return redirect(url_for('mainpage'))
+    finally:
+        db.close()
 
 @app.route('/signup/init', methods=['POST'])
 def signup_init():
@@ -218,22 +352,32 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
+        print(f"login attempt: username={username}, password={password}")
+
         db = get_db()
         try:
+            print(f"checking database for username: {username}")
             user = db.execute(
                 'SELECT user_info_id, username, email, password, verified FROM user_info WHERE username = ?', 
                 (username,)
             ).fetchone()
 
             if not user:
-                flash('Username not found', 'error')
+                print("username not found")
+                flash('username not found', 'error')
                 return redirect(url_for('login'))
+
+            print(f"user found: {dict(user)}")
 
             if not check_password_hash(user['password'], password):
-                flash('Incorrect password', 'error')
+                print("password incorrect")
+                flash('incorrect password', 'error')
                 return redirect(url_for('login'))
 
+            print("password correct")
+
             if not user['verified']:
+                print("user not verified, sending verification email")
                 token = secrets.token_urlsafe(32)
                 expires_at = datetime.now() + timedelta(hours=24)
                 db.execute(
@@ -242,20 +386,34 @@ def login():
                 )
                 db.commit()
                 send_confirmation_email(user['email'], token)
-                flash('Your account is not verified. A new verification email has been sent.', 'info')
+                flash('your account is not verified. a new verification email has been sent.', 'info')
                 return redirect(url_for('verify_pending'))
+
+            print("user verified")
 
             session['user_id'] = user['user_info_id']
             session['username'] = user['username']
+            print(f"user logged in: username={user['username']}, user_id={user['user_info_id']}")
             return redirect(url_for('mainpage'))
 
         except Exception as e:
-            flash(f'Login error: {str(e)}', 'error')
+            print(f"login error: {str(e)}")
+            flash(f'login error: {str(e)}', 'error')
             return redirect(url_for('login'))
         finally:
             db.close()
+            print("database connection closed")
 
+    print("rendering login page")
     return render_template('login.html')
 
-if __name__ == "__main__":
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
+
+if __name__ == '__main__':
+    with app.app_context():
+        init_db()
     app.run(debug=True)

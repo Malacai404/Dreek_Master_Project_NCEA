@@ -3,193 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="static/style.css" >
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <title>Dionvi - Mainpage</title>
-    <style>
-    </style>
 </head>
 <body>
     <header>
         <div class="logo">DIONVI</div>
-        <div class="search-bar">
-            <input type="text" placeholder="Search videos, channels...">
-        </div>
+        <div class="welcome-message">Welcome, {{ username }}!</div>
         <div class="user-actions">
             <a href="#">Upload</a>
             <a href="#">Notifications</a>
             <a href="#">Profile</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
         </div>
     </header>
     
     <div class="container">
         <aside class="sidebar">
-            <h2>Followed Channels</h2>
-            <div class="followed-channel">
-                <div class="channel-avatar">
-                    <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="Channel Avatar">
-                </div>
-                <div class="channel-name">TechReviews</div>
+            <h2>Channels</h2>
+            {% for channel in channels %}
+            <div class="channel-card">
+                <img src="{{ channel['channel_image_link'] }}" alt="Channel Image">
+                <h3>{{ channel['channel_name'] }}</h3>
+                <p>{{ channel['description'] }}</p>
+                <p>Followers: {{ channel['follow_count'] }}</p>
             </div>
-            <div class="followed-channel">
-                <div class="channel-avatar">
-                    <img src="https://randomuser.me/api/portraits/women/2.jpg" alt="Channel Avatar">
-                </div>
-                <div class="channel-name">CookingWithEmma</div>
-            </div>
-            <div class="followed-channel">
-                <div class="channel-avatar">
-                    <img src="https://randomuser.me/api/portraits/men/3.jpg" alt="Channel Avatar">
-                </div>
-                <div class="channel-name">GamingUniverse</div>
-            </div>
-            <div class="followed-channel">
-                <div class="channel-avatar">
-                    <img src="https://randomuser.me/api/portraits/women/4.jpg" alt="Channel Avatar">
-                </div>
-                <div class="channel-name">TravelDiaries</div>
-            </div>
-            <div class="followed-channel">
-                <div class="channel-avatar">
-                    <img src="https://randomuser.me/api/portraits/men/5.jpg" alt="Channel Avatar">
-                </div>
-                <div class="channel-name">FitnessPro</div>
-            </div>
-            <div class="followed-channel">
-                <div class="channel-avatar">
-                    <img src="https://randomuser.me/api/portraits/women/6.jpg" alt="Channel Avatar">
-                </div>
-                <div class="channel-name">ArtTutorials</div>
-            </div>
-            <div class="followed-channel">
-                <div class="channel-avatar">
-                    <img src="https://randomuser.me/api/portraits/men/7.jpg" alt="Channel Avatar">
-                </div>
-                <div class="channel-name">ScienceExplained</div>
-            </div>
+            {% endfor %}
         </aside>
         
         <main class="video-feed">
+            <h2>Video Thumbnails</h2>
             <div class="video-grid">
+                {% for video in videos %}
                 <div class="video-card">
-                    <div class="thumbnail">
-                        <img src="https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" alt="Video Thumbnail">
-                        <span class="duration">10:30</span>
-                    </div>
+                    <a href="{{ url_for('videodisplay', video_id=video['video_id']) }}">
+                        <img src="{{ video['video_thumbnail_file_link'] }}" alt="Video Thumbnail">
+                    </a>
                     <div class="video-info">
-                        <h3 class="video-title">Amazing Tech Gadgets You Need in 2023</h3>
-                        <div class="channel-info">
-                            <div class="avatar">
-                                <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="Channel Avatar">
-                            </div>
-                            <span class="channel-name">TechReviews</span>
-                        </div>
-                        <div class="video-stats">
-                            <span>1.2M views</span>
-                            <span>3 days ago</span>
-                        </div>
+                        <h3>{{ video['video_description'] }}</h3>
+                        <p>Channel: {{ video['channel_name'] }}</p>
+                        <p>Views: {{ video['view_count'] }}</p>
                     </div>
                 </div>
-                
-                <div class="video-card">
-                    <div class="thumbnail">
-                        <img src="https://i.ytimg.com/vi/J---aiyznGQ/hqdefault.jpg" alt="Video Thumbnail">
-                        <span class="duration">15:45</span>
-                    </div>
-                    <div class="video-info">
-                        <h3 class="video-title">ETC</h3>
-                        <div class="channel-info">
-                            <div class="avatar">
-                                <img src="https://randomuser.me/api/portraits/women/2.jpg" alt="Channel Avatar">
-                            </div>
-                            <span class="channel-name">CookingWithEmma</span>
-                        </div>
-                        <div class="video-stats">
-                            <span>856K views</span>
-                            <span>1 week ago</span>
-                        </div>
-                    </div>
-                </div> 
-                
-                <div class="video-card">
-                    <div class="thumbnail">
-                        <img src="https://i.ytimg.com/vi/9bZkp7q19f0/hqdefault.jpg" alt="Video Thumbnail">
-                        <span class="duration">22:18</span>
-                    </div>
-                    <div class="video-info">
-                        <h3 class="video-title">New Game Release: Ultimate Review</h3>
-                        <div class="channel-info">
-                            <div class="avatar">
-                                <img src="https://randomuser.me/api/portraits/men/3.jpg" alt="Channel Avatar">
-                            </div>
-                            <span class="channel-name">GamingUniverse</span>
-                        </div>
-                        <div class="video-stats">
-                            <span>3.4M views</span>
-                            <span>2 days ago</span>
-                            <span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="video-card">
-                    <div class="thumbnail">
-                        <img src="https://i.ytimg.com/vi/BHACKCNDMW8/hqdefault.jpg" alt="Video Thumbnail">
-                        <span class="duration">8:52</span>
-                    </div>
-                    <div class="video-info">
-                        <h3 class="video-title">Hidden Beaches in Thailand You Must Visit</h3>
-                        <div class="channel-info">
-                            <div class="avatar">
-                                <img src="https://randomuser.me/api/portraits/women/4.jpg" alt="Channel Avatar">
-                            </div>
-                            <span class="channel-name">TravelDiaries</span>
-                        </div>
-                        <div class="video-stats">
-                            <span>542K views</span>
-                            <span>3 weeks ago</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="video-card">
-                    <div class="thumbnail">
-                        <img src="https://i.ytimg.com/vi/sfM7_JLk-84/hqdefault.jpg" alt="Video Thumbnail">
-                        <span class="duration">12:30</span>
-                    </div>
-                    <div class="video-info">
-                        <h3 class="video-title">Full Body Workout at Home - No Equipment Needed</h3>
-                        <div class="channel-info">
-                            <div class="avatar">
-                                <img src="https://randomuser.me/api/portraits/men/5.jpg" alt="Channel Avatar">
-                            </div>
-                            <span class="channel-name">FitnessPro</span>
-                        </div>
-                        <div class="video-stats">
-                            <span>1.8M views</span>
-                            <span>5 days ago</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="video-card">
-                    <div class="thumbnail">
-                        <img src="https://i.ytimg.com/vi/7YYJ_hqXq4w/hqdefault.jpg" alt="Video Thumbnail">
-                        <span class="duration">18:15</span>
-                    </div>
-                    <div class="video-info">
-                        <h3 class="video-title">Watercolor Painting Tutorial for Beginners</h3>
-                        <div class="channel-info">
-                            <div class="avatar">
-                                <img src="https://randomuser.me/api/portraits/women/6.jpg" alt="Channel Avatar">
-                            </div>
-                            <span class="channel-name">ArtTutorials</span>
-                        </div>
-                        <div class="video-stats">
-                            <span>723K views</span>
-                            <span>2 weeks ago</span>
-                        </div>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </main>
     </div>
