@@ -215,9 +215,9 @@ def send_confirmation_email(recipient_email, token):
     message = MIMEMultipart()
     message['From'] = app.config['EMAIL_ADDRESS']
     message['To'] = recipient_email
-    message['Subject'] = "Confirm Your Email for Blackjack Buddy"
+    message['Subject'] = "Confirm Your Email for Dionvi"
     
-    body = f"""<h2>Welcome to Blackjack Buddy!</h2>
+    body = f"""<h2>Welcome to Dionvi!</h2>
     <p>Please click the following link to verify your email address:</p>
     <p><a href="{verification_link}">{verification_link}</a></p>
     <p>This link will expire in 24 hours.</p>"""
