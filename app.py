@@ -28,17 +28,16 @@ def validate_email(email):
     return re.match(pattern, email) is not None
 
 def get_db():
-    try:
-        db = sqlite3.connect(app.config['DATABASE'])
-        db.row_factory = sqlite3.Row
-        return db
-    except Exception as e:
-        print(f"[DB ERROR] Connection failed: {str(e)}")
-        raise
+    db = sqlite3.connect(app.config['DATABASE'])
+    db.row_factory = sqlite3.Row
+    return db
 
 def init_db():
     with app.app_context():
         db = get_db()
+        with open('schema.sql', 'r') as f:
+            db.executescript(f.read())
+        db.commit()
 
 @app.route('/')
 def mainpage():
@@ -54,7 +53,7 @@ def signup_init():
     db = get_db()
     try:
         user = db.execute(
-            'SELECT verified FROM users WHERE email = ?',
+            'SELECT verified FROM user_info WHERE email = ?',
             (email,)
         ).fetchone()
         
@@ -70,10 +69,6 @@ def signup_init():
         return redirect(url_for('mainpage'))
     finally:
         db.close()
-
-
-
-
 
 @app.route('/verify')
 def verify_email():
@@ -117,7 +112,7 @@ def verify_email():
                 return redirect(url_for('login'))
         
         db.execute(
-            'UPDATE users SET verified = 1 WHERE email = ?',
+            'UPDATE user_info SET verified = 1 WHERE email = ?',
             (token_data['email'],)
         )
         
@@ -128,7 +123,7 @@ def verify_email():
         db.commit()
         
         user = db.execute(
-            'SELECT username FROM users WHERE email = ?',
+            'SELECT username FROM user_info WHERE email = ?',
             (token_data['email'],)
         ).fetchone()
         
@@ -151,32 +146,24 @@ def verify_email():
 def signup():
     if request.method == 'POST':
         username = request.form.get('username')
-        email = request.form.get('email')  
+        email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
+
         if not all([username, email, password, confirm_password]):
             flash('All fields are required', 'error')
             return redirect(url_for('signup'))
-            
-        if password != confirm_password:
-            flash('Passwords do not match', 'error')
+
+        if password != confirm_password or len(password) < 8:
+            flash('Passwords must match and be at least 8 characters long.', 'error')
             return redirect(url_for('signup'))
-            
-        if len(password) < 8:
-            flash('Password must be at least 8 characters', 'error')
-            return redirect(url_for('signup'))
-            
-        if not re.match(r'^[a-zA-Z0-9_]{3,20}$', username):
-            flash('Username must be 3-20 characters (letters, numbers, underscores)', 'error')
-            return redirect(url_for('signup'))
-            
+
         db = get_db()
         try:
             db.execute(
-                'INSERT INTO users (username, email, password, verified) VALUES (?, ?, ?, ?)',
+                'INSERT INTO user_info (username, email, password, verified) VALUES (?, ?, ?, ?)',
                 (username, email, generate_password_hash(password), False)
             )
-            xw
             token = secrets.token_urlsafe(32)
             expires_at = datetime.now() + timedelta(hours=24)
             db.execute(
@@ -184,29 +171,20 @@ def signup():
                 (token, email, expires_at)
             )
             db.commit()
-            
             send_confirmation_email(email, token)
-            flash('Registration successful! Please check your email to verify your account.', 'success')
+            flash('registation successful! Please check your email to verify your account.', 'success')
             return redirect(url_for('verify_pending'))
-            
         except sqlite3.IntegrityError:
-            flash('Username or email already exists', 'error')
-            return redirect(url_for('signup'))
-        except Exception as e:
-            flash(f'Registration error: {str(e)}', 'error')
+            flash('Username or email already exists.', 'error')
             return redirect(url_for('signup'))
         finally:
             db.close()
-    
+
     return render_template('signup.html')
 
 @app.route('/verify_pending')
 def verify_pending():
-    email = request.args.get('email')
-    if not email:
-        flash('Invalid access to verification page.', 'error')
-        return redirect(url_for('signup'))
-    return render_template('verify_pending.html', email=email)
+    return render_template('verify_pending.html')
 
 
 def send_confirmation_email(recipient_email, token):
@@ -229,13 +207,54 @@ def send_confirmation_email(recipient_email, token):
             server.starttls()
             server.login(app.config['EMAIL_ADDRESS'], app.config['EMAIL_PASSWORD'])
             server.send_message(message)
-            return True
-    except Exception as e:
-        print(f"[EMAIL ERROR] Failed to send email: {str(e)}")
+        return True
+    except Exception:
         return False
 
-@app.route('/login')
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        db = get_db()
+        try:
+            user = db.execute(
+                'SELECT user_info_id, username, email, password, verified FROM user_info WHERE username = ?', 
+                (username,)
+            ).fetchone()
+
+            if not user:
+                flash('Username not found', 'error')
+                return redirect(url_for('login'))
+
+            if not check_password_hash(user['password'], password):
+                flash('Incorrect password', 'error')
+                return redirect(url_for('login'))
+
+            if not user['verified']:
+                token = secrets.token_urlsafe(32)
+                expires_at = datetime.now() + timedelta(hours=24)
+                db.execute(
+                    'INSERT OR REPLACE INTO verification_tokens (token, email, expires_at) VALUES (?, ?, ?)',
+                    (token, user['email'], expires_at)
+                )
+                db.commit()
+                send_confirmation_email(user['email'], token)
+                flash('Your account is not verified. A new verification email has been sent.', 'info')
+                return redirect(url_for('verify_pending'))
+
+            session['user_id'] = user['user_info_id']
+            session['username'] = user['username']
+            return redirect(url_for('mainpage'))
+
+        except Exception as e:
+            flash(f'Login error: {str(e)}', 'error')
+            return redirect(url_for('login'))
+        finally:
+            db.close()
+
     return render_template('login.html')
 
 if __name__ == "__main__":

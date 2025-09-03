@@ -9,11 +9,16 @@
 <body>
     <img class="logo-centre" src="static/images/Dreek_Logo_Transparent.png"></img>
     <h1>Login To Dionvi</h1>
-    <div class="input-box">
-        <input id="0" placeholder="Enter Username/Email">
-    </div>
-    <div class="input-box"  style="margin-top: 20px;">
-        <input class="pass" id="1" type="Password" placeholder="Enter Password">
+    <div class="">
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Username" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+            <button type="submit" class="auth-button">Login</button>
+        </form>
     </div>
     <p>Don't have an account? <a href="{{ url_for('signup') }}">Signup</a></p>
     <script>
