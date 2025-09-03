@@ -1,6 +1,9 @@
 body {
     background-color: #1C1018;
-    font-family:Verdana, Geneva, Tahoma, sans-serif;
+    font-family: "NATS", sans-serif;
+    color: whitesmoke;
+    margin: 0;
+    padding: 0;
 }
 
 @font-face {
@@ -8,88 +11,16 @@ body {
     font-weight: normal;
     font-family: 'NATS';
     src: local('NATS'), url('NATS-Regular.ttf') format('truetype');
-    }
+}
 
-.logo-main {
-    width: 108px;
-    height: 108px;
-    position: absolute;
-    top: -5px;
-    left: -5px;
-}
-.logo-centre {
-    width: 216px;
-    height: 216px;
-    margin: auto;
-    display: block;
-}
-h1 {
-    margin-top: -20px;
-    text-align: center;
-    color: whitesmoke;
-    font-family: "NATS", sans-serif;
-    font-weight: normal;
-    font-size:42px
-}
-input {
-    font-size:24px;
-    width:93%;
-    height: 70%;
-    margin-top: 20px;
-    padding-top: 12px;
-    outline: none;
-    border: none;
-    font-family: "NATS", sans-serif;
-    box-shadow: none;
-    background-color: transparent;
-    margin: auto;
-    display: block;
-    color: whitesmoke;
-    line-height: 1px;
-}
-p{
-    font-family: "NATS", sans-serif;
-    padding-top: 50px;
-    color: whitesmoke; 
-    text-align: center;
-}
-a{
-    font-family: "NATS", sans-serif;
-    padding-top: 50px;
-    color: #CCF5AC;
-    text-align: center;
-}
-.input-box{
-    font-family: "NATS", sans-serif;
-    border-radius: 10%/90%;
-    background-color: #545353;
-    width: 350px;
-    height: 50px;
-    margin: auto;
-    display: block;
-    line-height: 1px;
-}
-.pass{
-    font-family: sans-serif;
-}
-.pass::placeholder {
-    font-family: "NATS", sans-serif;
-  }
-
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
 header {
     background-color: #1C1018;
-    color: white;
+    color: whitesmoke;
     padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -101,79 +32,77 @@ header {
     letter-spacing: 1px;
 }
 
-.search-bar {
-    flex-grow: 1;
-    margin: 0 2rem;
-}
-
-.search-bar input {
-    width: 100%;
-    max-width: 600px;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 20px;
-    font-size: 1rem;
+.welcome-message {
+    font-size: 1.2rem;
+    font-weight: 300;
 }
 
 .user-actions a {
-    color: white;
+    color: #CCF5AC;
     text-decoration: none;
     margin-left: 1rem;
+    font-size: 1rem;
+    transition: color 0.2s ease-in-out;
 }
+
+.user-actions a:hover {
+    color: #A3D977;
+}
+
 
 .container {
     display: flex;
-    padding: 1rem;
+    padding: 2rem;
+    gap: 2rem;
 }
 
+
 .sidebar {
-    width: 250px;
+    width: 300px;
     padding: 1rem;
-    background-color: white;
+    background-color: #2A1E2E;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    margin-right: 1rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     height: fit-content;
     position: sticky;
     top: 80px;
 }
 
 .sidebar h2 {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     margin-bottom: 1rem;
+    color: #CCF5AC;
+    border-bottom: 1px solid #CCF5AC;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #eee;
 }
 
-.followed-channel {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem 0;
-    cursor: pointer;
+.channel-card {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #1C1018;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    color: whitesmoke;
+    text-align: center;
 }
 
-.followed-channel:hover {
-    background-color: #f5f5f5;
-}
-
-.channel-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: #ddd;
-    margin-right: 0.75rem;
-    overflow: hidden;
-}
-
-.channel-avatar img {
+.channel-card img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    border-radius: 50%;
+    margin-bottom: 0.5rem;
 }
 
-.channel-name {
-    font-weight: 500;
+.channel-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
 }
+
+.channel-card p {
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+}
+
 
 .video-feed {
     flex-grow: 1;
@@ -186,11 +115,11 @@ header {
 }
 
 .video-card {
-    background-color: white;
+    background-color: #2A1E2E;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    transition: transform 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
 }
 
 .video-card:hover {
@@ -199,7 +128,7 @@ header {
 
 .thumbnail {
     position: relative;
-    padding-top: 56.25%; 
+    padding-top: 56.25%;
     background-color: #eee;
     overflow: hidden;
 }
@@ -217,8 +146,8 @@ header {
     position: absolute;
     bottom: 0.5rem;
     right: 0.5rem;
-    background-color: rgba(0,0,0,0.7);
-    color: white;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: whitesmoke;
     padding: 0.2rem 0.4rem;
     border-radius: 3px;
     font-size: 0.8rem;
@@ -226,48 +155,81 @@ header {
 
 .video-info {
     padding: 1rem;
+    text-align: center;
 }
 
 .video-title {
     font-weight: 600;
     margin-bottom: 0.5rem;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 1.1rem;
+    color: #CCF5AC;
 }
 
 .channel-info {
     display: flex;
     align-items: center;
+    justify-content: center;
     margin-bottom: 0.5rem;
-}
-
-.channel-info .avatar {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: #ddd;
-    margin-right: 0.5rem;
-    overflow: hidden;
-}
-
-.channel-info .avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.channel-name {
     font-size: 0.9rem;
-    color: #666;
+    color: whitesmoke;
 }
 
 .video-stats {
-    display: flex;
     font-size: 0.8rem;
-    color: #666;
+    color: #A3D977;
 }
 
-.video-stats span {
-    margin-right: 0.75rem;
+
+.auth-form {
+    width: 100%;
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #2A1E2E;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.auth-form .input-box {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem;
+    background-color: #1C1018;
+    border: 1px solid #CCF5AC;
+    border-radius: 5px;
+    color: whitesmoke;
+    font-size: 1rem;
+}
+
+.auth-form .auth-button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #CCF5AC;
+    border: none;
+    border-radius: 5px;
+    color: #1C1018;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.auth-form .auth-button:hover {
+    background-color: #A3D977;
+}
+
+.auth-form p {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.auth-form p a {
+    color: #CCF5AC;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-form p a:hover {
+    color: #A3D977;
 }

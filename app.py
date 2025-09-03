@@ -9,7 +9,7 @@ import secrets
 from datetime import datetime, timedelta
 import os
 from werkzeug.utils import secure_filename
-
+from moviepy import VideoFileClip
 
 
 app = Flask(__name__)
@@ -52,6 +52,7 @@ def upload_video():
         description = request.form.get('description')
         category_id = request.form.get('category_id')
         file = request.files.get('file')
+        thumbnail = request.files.get('thumbnail')
 
         if not title or not description or not category_id or not file:
             flash('All fields are required', 'error')
@@ -61,27 +62,58 @@ def upload_video():
             flash('Invalid file type. Only MP4, AVI, MOV, and MKV are allowed.', 'error')
             return redirect(url_for('upload_video'))
 
+        # Save the video file
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+        try:
+            file.save(filepath)
+        except FileNotFoundError:
+            os.makedirs(app.config['UPLOAD_FOLDER'])
+            file.save(filepath)
+            print(f"Created missing upload folder and saved file: {filepath}")
+
+        # Handle the thumbnail
+        if thumbnail and allowed_file(thumbnail.filename):
+            thumbnail_filename = secure_filename(thumbnail.filename)
+            thumbnail_path = os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_filename)
+            thumbnail.save(thumbnail_path)
+        else:
+            # Generate a thumbnail from the first frame of the video
+            thumbnail_filename = f"{os.path.splitext(filename)[0]}_thumbnail.jpg"
+            thumbnail_path = os.path.join(app.config['UPLOAD_FOLDER'], thumbnail_filename)
+            try:
+                clip = VideoFileClip(filepath)
+                clip.save_frame(thumbnail_path, t=0.0)  # Save the first frame
+                clip.close()
+            except Exception as e:
+                print(f"Error generating thumbnail: {str(e)}")
+                flash('An error occurred while generating the thumbnail.', 'error')
+                return redirect(url_for('upload_video'))
+
+        print(f"Video file path: {filepath}")
+        print(f"Thumbnail path: {thumbnail_path}")
 
         try:
             db = get_db()
 
+            # Create a new comments list for the video
             db.execute('INSERT INTO comments_list DEFAULT VALUES')
             comments_list_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
 
+            # Insert the video into the database
             db.execute('''
                 INSERT INTO video (view_count, video_file_link, description, video_length, comments_list_id, category_id, channel_id, video_thumbnail_file_link)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (0, filepath, description, '00:00', comments_list_id, category_id, session['user_id'], ''))
+            ''', (0, filepath, description, '00:00', comments_list_id, category_id, session['user_id'], thumbnail_path))
 
+            # Increment the video count for the category
             db.execute('''
                 UPDATE category
                 SET video_count = video_count + 1
                 WHERE category_id = ?
             ''', (category_id,))
 
+            # Increment the video count for the user's channel
             db.execute('''
                 UPDATE channel
                 SET video_count = video_count + 1
