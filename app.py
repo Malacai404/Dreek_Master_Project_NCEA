@@ -43,10 +43,6 @@ def init_db():
 @app.route('/')
 def mainpage():
     return render_template('mainpage.html')
-@app.route('/signup')
-def signup():
-    return render_template('signup.html')
-
 
 @app.route('/signup/init', methods=['POST'])
 def register_init():
