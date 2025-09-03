@@ -21,28 +21,18 @@
     <div  class="input-box"  style="margin-top: 20px;">
         <input class="pass" id="3" type="password" placeholder="Confirm Password" >
     </div>
+    <button type="submit" class="auth-button">Register</button>
 
     <p>Have an account already? <a href="login">Login</a></p>
 
     <script>
-            var id = 0;
-        function onClick(){
-            const focusedElement = document.activeElement;
-            id = parseInt(focusedElement.id)
-        }
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' || event.keyCode === 13) {
-                set_focus();
-            }
-        });
-    
-        function set_focus() {
-            id += 1;
-            if (id > 3) {
-                document.location.href = "login";
-            }
-            document.getElementById(id.toString()).focus();
-        }
+            document.querySelector('.auth-form').addEventListener('submit', function(e) {
+    const username = document.querySelector('input[name="username"]').value;
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+        e.preventDefault();
+        alert('Username must be 3-20 characters (letters, numbers, underscores)');
+    }
+});
     </script> 
 </body>
 </html>
