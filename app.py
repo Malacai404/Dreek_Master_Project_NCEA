@@ -19,6 +19,14 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dreek_default_secret_key')
 app.config['EMAIL_ADDRESS'] = os.getenv('EMAIL_ADDRESS', 'malacai404@gmail.com')
 app.config['EMAIL_PASSWORD'] = os.getenv('EMAIL_PASSWORD', 'rlelnhlpffkbvkin')
 
+
+def validate_email(email):
+    """Validate the format of an email address."""
+    if not email or not isinstance(email, str):
+        return False
+    pattern = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+    return re.match(pattern, email) is not None
+
 def get_db():
     try:
         db = sqlite3.connect(app.config['DATABASE'])
@@ -38,6 +46,109 @@ def mainpage():
 @app.route('/signup')
 def signup():
     return render_template('signup.html')
+
+
+@app.route('/signup/init', methods=['POST'])
+def register_init():
+    email = request.form.get('email')
+    if not validate_email(email):
+        flash('Invalid email', 'error')
+        return redirect(url_for('index'))
+    
+    db = get_db()
+    try:
+        user = db.execute(
+            'SELECT verified FROM users WHERE email = ?',
+            (email,)
+        ).fetchone()
+        
+        if user and user['verified']:
+            flash('Account already exists. Please log in with your username.', 'info')
+            return redirect(url_for('login'))  
+            
+        session['registration_email'] = email
+        return redirect(url_for('register'))
+        
+    except Exception as e:
+        flash('Error checking account status', 'error')
+        return redirect(url_for('index'))
+    finally:
+        db.close()
+
+
+
+
+
+@app.route('/verify')
+def verify_email():
+    """Handle email verification links and redirect to login after success."""
+    token = request.args.get('token')
+    
+   
+    if not token:
+        flash('Missing verification token', 'error')
+        return redirect(url_for('login'))
+    
+    db = get_db()
+    try:
+        token_data = db.execute(
+            '''SELECT * FROM verification_tokens 
+               WHERE token = ? AND expires_at > datetime('now')''',
+            (token,)
+        ).fetchone()
+        
+        if not token_data:
+            expired_token = db.execute(
+                'SELECT * FROM verification_tokens WHERE token = ?',
+                (token,)
+            ).fetchone()
+            
+            if expired_token:
+                flash('Verification link expired. A new one has been sent.', 'error')
+                new_token = secrets.token_urlsafe(32)
+                expires_at = datetime.now() + timedelta(hours=24)
+                
+                db.execute(
+                    'UPDATE verification_tokens SET token = ?, expires_at = ? WHERE email = ?',
+                    (new_token, expires_at, expired_token['email'])
+                )
+                db.commit()
+                
+                send_confirmation_email(expired_token['email'], new_token)
+                return redirect(url_for('verify_pending', email=expired_token['email']))
+            else:
+                flash('Invalid verification link', 'error')
+                return redirect(url_for('login'))
+        
+        db.execute(
+            'UPDATE users SET verified = 1 WHERE email = ?',
+            (token_data['email'],)
+        )
+        
+        db.execute(
+            'DELETE FROM verification_tokens WHERE token = ?',
+            (token,)
+        )
+        db.commit()
+        
+        user = db.execute(
+            'SELECT username FROM users WHERE email = ?',
+            (token_data['email'],)
+        ).fetchone()
+        
+        flash(
+            f'Email verified successfully! Welcome {user["username"]}. You can now log in.',
+            'success'
+        )
+        return redirect(url_for('login'))
+        
+    except Exception as e:
+        db.rollback()
+        app.logger.error(f"Verification error: {str(e)}")
+        flash('An error occurred during verification. Please try again.', 'error')
+        return redirect(url_for('login'))
+    finally:
+        db.close()
 
 
 @app.route('/signup', methods=['GET', 'POST'])
