@@ -149,29 +149,26 @@ def verify_email():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    email = session.pop('registration_email', None) or request.args.get('email')
-    
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')  
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
-
         if not all([username, email, password, confirm_password]):
             flash('All fields are required', 'error')
-            return redirect(url_for('signup', email=email))
+            return redirect(url_for('signup'))
             
         if password != confirm_password:
             flash('Passwords do not match', 'error')
-            return redirect(url_for('signup', email=email))
+            return redirect(url_for('signup'))
             
         if len(password) < 8:
             flash('Password must be at least 8 characters', 'error')
-            return redirect(url_for('signup', email=email))
+            return redirect(url_for('signup'))
             
         if not re.match(r'^[a-zA-Z0-9_]{3,20}$', username):
             flash('Username must be 3-20 characters (letters, numbers, underscores)', 'error')
-            return redirect(url_for('signup', email=email))
+            return redirect(url_for('signup'))
             
         db = get_db()
         try:
@@ -179,7 +176,7 @@ def signup():
                 'INSERT INTO users (username, email, password, verified) VALUES (?, ?, ?, ?)',
                 (username, email, generate_password_hash(password), False)
             )
-            
+            xw
             token = secrets.token_urlsafe(32)
             expires_at = datetime.now() + timedelta(hours=24)
             db.execute(
@@ -189,20 +186,27 @@ def signup():
             db.commit()
             
             send_confirmation_email(email, token)
-            return redirect(url_for('verify_pending', email=email))
+            flash('Registration successful! Please check your email to verify your account.', 'success')
+            return redirect(url_for('verify_pending'))
             
-        except sqlite3.IntegrityError as e:
+        except sqlite3.IntegrityError:
             flash('Username or email already exists', 'error')
-            return redirect(url_for('signup', email=email))
+            return redirect(url_for('signup'))
         except Exception as e:
             flash(f'Registration error: {str(e)}', 'error')
-            return redirect(url_for('signup', email=email))
+            return redirect(url_for('signup'))
         finally:
             db.close()
     
-    return render_template('signup.html', prefilled_email=email)
+    return render_template('signup.html')
 
-
+@app.route('/verify_pending')
+def verify_pending():
+    email = request.args.get('email')
+    if not email:
+        flash('Invalid access to verification page.', 'error')
+        return redirect(url_for('signup'))
+    return render_template('verify_pending.html', email=email)
 
 
 def send_confirmation_email(recipient_email, token):

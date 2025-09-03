@@ -9,7 +9,7 @@
 <body onclick="onClick()">
     <img class="logo-centre" src="static/images/Dreek_Logo_Transparent.png"></img>
     <h1>Welcome To Dionvi</h1>
-    <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+    <form method="POST" action="{{ url_for('signup') }}" class="auth-form">
         <div class="input-box">
             <input name="username" placeholder="Enter Username" required>
         </div>
@@ -22,7 +22,7 @@
         <div class="input-box" style="margin-top: 20px;">
             <input class="pass" name="confirm_password" type="password" placeholder="Confirm Password" required>
         </div>
-        <button type="submit" class="auth-button">Register</button>
+        <button type="submit" class="auth-button">Sign Up</button>
     </form>
 
     <p>Have an account already? <a href="{{ url_for('login') }}">Login</a></p>
